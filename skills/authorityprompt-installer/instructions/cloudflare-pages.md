@@ -32,6 +32,8 @@ Cloudflare Pages reads a `_headers` file at the publish-directory root. Append:
 
 Edit framework-appropriate layout (see `vercel.md` framework matrix).
 
+> **SSR pitfall**: do not use `next/script` with `strategy="afterInteractive"`, or any framework "Script" helper that lazy-injects after hydration. The `<script src=…>` tag must appear in the SSR'd HTML so AP's install detector and AI crawlers see it. See [vercel.md → SSR pitfall](./vercel.md#ssr-pitfall--the-most-common-install-mistake). Use a plain `<script async>` in `<head>`.
+
 ## Step C — commit + push
 
 ```bash

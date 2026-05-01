@@ -45,12 +45,12 @@ If the project is Next.js, the same rules can go in `next.config.js`'s `headers(
 
 Add to the root layout / template:
 
-- **Next.js (app router)**: `app/layout.tsx` — add `<meta>`, `<link>`, `<Script>` (use `next/script` with `strategy="afterInteractive"` for the AP script).
-- **Next.js (pages router)**: `pages/_document.tsx` or `pages/_app.tsx`.
-- **Astro**: shared `Layout.astro` component.
-- **SvelteKit**: `src/app.html`.
+- **Next.js (app router)**: `app/layout.tsx` — add `<meta>`, `<link>`, and the AP `<script>` directly inside the `<head>` JSX element. **Do NOT use `next/script` with `strategy="afterInteractive"`** — that strategy injects the script into the DOM only after client-side React hydration, so the `<script src=…>` tag is *missing from the SSR'd HTML*. AuthorityPrompt's install detector and most AI crawlers read raw HTML without executing JS, so they will not see the script and will report "not installed" even though browsers load it fine. Use a plain `<script async>` element instead.
+- **Next.js (pages router)**: `pages/_document.tsx` `<Head>` (renders into SSR HTML; safe).
+- **Astro**: shared `Layout.astro` component, inside the `<head>` block.
+- **SvelteKit**: `src/app.html` (SSR'd template, safe).
 - **Remix**: `app/root.tsx` `<head>`.
-- **Vue/Nuxt**: `app.vue` or `nuxt.config.ts` head section.
+- **Vue/Nuxt**: `app.vue` or `nuxt.config.ts` head section, using `script: [{ src: '…', async: true }]`.
 - **Static HTML**: every page's `<head>`.
 
 Snippet to paste (substitute `{{DOMAIN}}` and `{{TOKEN}}`):
@@ -60,6 +60,18 @@ Snippet to paste (substitute `{{DOMAIN}}` and `{{TOKEN}}`):
 <link rel="ai-profile" href="https://authorityprompt.com/company/{{DOMAIN}}">
 <script src="https://authorityprompt.com/api/ingest-generator/company/{{DOMAIN}}/authorityprompt.js" async></script>
 ```
+
+### SSR pitfall — the most common install mistake
+
+Across React / Vue / Svelte SSR frameworks, the typical mistake is using a framework-provided "Script" component with the default lazy-load strategy. Examples that produce a *broken* install (script URL in hydration data, no real `<script>` tag in SSR HTML):
+
+```tsx
+// ❌ Next.js — appears in DOM only after hydration
+import Script from 'next/script';
+<Script src="…/authorityprompt.js" strategy="afterInteractive" />
+```
+
+The fix is always the same: render a plain `<script>` element in the SSR'd `<head>`. The `verify_install.sh` audit catches this — if you see "AP URL found but NOT as a real `<script>` tag", this is the bug.
 
 ## Step C — commit + redeploy
 

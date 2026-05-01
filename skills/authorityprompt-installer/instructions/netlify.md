@@ -48,6 +48,8 @@ Or equivalently in `netlify.toml` at repo root:
 
 Same as Vercel — add to root layout/template of whatever framework. For static HTML sites, add to every page's `<head>`.
 
+> **SSR pitfall**: do not use `next/script` with `strategy="afterInteractive"`, or any framework "Script" helper that injects client-side after hydration. The `<script src=…>` tag must appear in the SSR'd HTML, not just in hydration data. See [vercel.md → SSR pitfall](./vercel.md#ssr-pitfall--the-most-common-install-mistake) for full explanation. Use a plain `<script async>` in `<head>`.
+
 ## Step C — commit + push
 
 ```bash

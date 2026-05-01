@@ -99,8 +99,18 @@ check_head() {
     LAYERS_FAILED+=("L3")
   fi
 
-  if echo "$html" | grep -qE 'authorityprompt\.com/api/ingest-generator/company/[^"]+/authorityprompt\.js'; then
-    ok "AP sync script URL embedded on every page"
+  # IMPORTANT: must match an actual <script src="..."> tag, not just the URL
+  # appearing anywhere in HTML. SSR frameworks (Next.js, Remix, Nuxt, SvelteKit)
+  # routinely embed JS-injected scripts as a URL in their hydration data blob —
+  # that URL becomes a real <script> tag only after client-side hydration. AP's
+  # installation detector and AI crawlers parse raw HTML without executing JS,
+  # so they need the literal <script src=…> in the SSR output. This regex
+  # tolerates attribute order, quote style, and whitespace.
+  if echo "$html" | grep -qiE '<script[^>]+src=["'\''][^"'\'']*authorityprompt\.com/api/ingest-generator/company/[^"'\'']+/authorityprompt\.js'; then
+    ok "AP sync <script src=...> tag in SSR HTML"
+  elif echo "$html" | grep -qE 'authorityprompt\.com/api/ingest-generator/company/[^"]+/authorityprompt\.js'; then
+    ng "AP URL found but NOT as a real <script> tag — likely embedded in hydration data (e.g. next/script with strategy=\"afterInteractive\"). Switch to a plain <script async> in <head>."
+    LAYERS_FAILED+=("L4")
   else
     ng "AP sync <script> URL not found in HTML"
     LAYERS_FAILED+=("L4")
