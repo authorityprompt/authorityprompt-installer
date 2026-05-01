@@ -138,11 +138,17 @@ check_profile() {
   $layer_ok || LAYERS_FAILED+=("L5")
 
   section "L6 — content_hash matches SHA-256(jsonld)"
-  local manifest jsonld declared computed
+  local manifest declared computed tmp_jsonld
   manifest=$(http_body "${AP}/manifest.json")
-  jsonld=$(http_body "${AP}/authorityprompt.jsonld")
+  # Hash via tmpfile — bash command-substitution strips trailing newlines, which
+  # corrupts the byte-exact match against AP's server-side hash. Curl directly
+  # to disk preserves bytes verbatim, openssl reads the file as-is.
+  tmp_jsonld=$(mktemp -t ap_jsonld.XXXXXX)
+  $CURL -skL --max-time 12 -A "Mozilla/5.0 (compatible; ap-installer/1.0)" \
+        -o "$tmp_jsonld" "${AP}/authorityprompt.jsonld" 2>/dev/null
   declared=$(echo "$manifest" | python3 -c 'import json,sys; print(json.load(sys.stdin).get("content_hash","NONE"))' 2>/dev/null)
-  computed=$(printf '%s' "$jsonld" | openssl dgst -sha256 | awk '{print $2}')
+  computed=$(openssl dgst -sha256 "$tmp_jsonld" | awk '{print $NF}')
+  rm -f "$tmp_jsonld"
   if [[ -n "$declared" && "$declared" == "$computed" ]]; then
     ok "content_hash MATCH ($declared)"
   else
