@@ -1,0 +1,90 @@
+name: Bug report
+description: The audit reports a wrong PASS or FAIL, or installation steps don't match a real platform's UI.
+title: "[bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time. The two scripts that matter for diagnosis are
+        `verify_install.sh` and `detect_hosting.sh`. If your bug is in the audit,
+        please paste the full output. If it's in install instructions, tell us
+        which platform and which UI path didn't match.
+
+  - type: input
+    id: domain
+    attributes:
+      label: Site domain (if you can share)
+      description: The site you ran the install or audit against. Leave blank if private.
+      placeholder: example.com
+    validations:
+      required: false
+
+  - type: dropdown
+    id: hosting
+    attributes:
+      label: Hosting platform
+      options:
+        - WordPress (self-hosted)
+        - WordPress.com
+        - Webflow
+        - Wix
+        - Squarespace
+        - Shopify
+        - Ghost (self-hosted)
+        - Ghost(Pro)
+        - Vercel
+        - Netlify
+        - Cloudflare Pages
+        - GitHub Pages
+        - Carrd
+        - Tilda
+        - Framer
+        - Notion / Super.so / Potion
+        - Bitrix
+        - Apache shared
+        - Custom nginx VPS
+        - Other (specify in description)
+    validations:
+      required: true
+
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: One-paragraph summary of the actual vs expected behavior.
+    validations:
+      required: true
+
+  - type: textarea
+    id: audit_output
+    attributes:
+      label: Full audit output
+      description: |
+        Run `bash scripts/verify_install.sh <domain> <token> 2>&1 | sed 's/\x1b\[[0-9;]*m//g'`
+        and paste the result. This strips color codes for readability.
+      render: shell
+
+  - type: textarea
+    id: env
+    attributes:
+      label: Environment
+      description: bash --version, OS, and the plugin version (`v1.0.0` from your install).
+      value: |
+        - bash:
+        - OS:
+        - plugin version:
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: prereq
+    attributes:
+      label: Prerequisites
+      options:
+        - label: I have the AuthorityPrompt account registered and the bundle downloaded.
+          required: true
+        - label: I confirmed the verification token is correct (visible in my AP dashboard).
+          required: true
+        - label: I'm on the latest plugin release.
+          required: true

@@ -1,0 +1,78 @@
+name: New platform support
+description: Request or contribute support for a hosting platform we don't yet cover.
+title: "[platform] "
+labels: ["new-platform"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Adding a platform is one of the most useful contributions. If you're proposing rather than
+        submitting, the issue gives the maintainers everything needed to write the instructions
+        without trial-and-error access to that hosting.
+
+  - type: input
+    id: platform
+    attributes:
+      label: Platform name
+      placeholder: e.g. Kajabi, Webnode, Hostinger Website Builder
+    validations:
+      required: true
+
+  - type: input
+    id: site
+    attributes:
+      label: Public-facing site URL on this platform
+      description: Any live site we can curl to fingerprint headers. Doesn't have to be yours.
+      placeholder: https://example-host.com
+    validations:
+      required: false
+
+  - type: textarea
+    id: fingerprint
+    attributes:
+      label: HTTP fingerprint
+      description: |
+        Run `curl -sI https://<that-site>/ | head -20` and paste output. This is what
+        `detect_hosting.sh` will key on.
+      render: shell
+
+  - type: dropdown
+    id: head_access
+    attributes:
+      label: Can the platform admin add custom HTML to <head>?
+      options:
+        - Yes — there's a "Custom Code" / "Header Script" / similar field in admin UI
+        - Yes — only on paid tier (please specify in description)
+        - No — closed CMS
+        - Don't know
+    validations:
+      required: true
+
+  - type: dropdown
+    id: file_access
+    attributes:
+      label: Can the platform admin upload files to /.well-known/* on the public domain?
+      options:
+        - Yes — via FTP/SFTP/file manager
+        - Yes — via Git push
+        - Possible only with Cloudflare Worker proxy in front
+        - No
+        - Don't know
+    validations:
+      required: true
+
+  - type: textarea
+    id: ui_path
+    attributes:
+      label: Exact admin UI path for adding head HTML (if you've verified it)
+      description: e.g. "Settings → Code Injection → Header"
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: contribute
+    attributes:
+      label: Are you contributing the instruction file?
+      options:
+        - label: I'll open a PR with `instructions/<platform>.md` and a fingerprint patch to `detect_hosting.sh`.
+        - label: I'm requesting; can a maintainer write it?

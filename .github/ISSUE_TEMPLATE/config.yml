@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: AuthorityPrompt support
+    url: https://authorityprompt.com
+    about: AuthorityPrompt account, billing, profile data, or registration questions go to AuthorityPrompt directly — they don't belong in this installer's issue tracker.
+  - name: Claude Code plugin docs
+    url: https://code.claude.com/docs/en/plugins.md
+    about: Questions about the Claude Code plugin/skill/marketplace system itself (not specific to this installer).
