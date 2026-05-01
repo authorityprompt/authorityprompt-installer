@@ -1,0 +1,23 @@
+{
+  "name": "authorityprompt-installer",
+  "version": "1.0.0",
+  "description": "Guided installer for the AuthorityPrompt canonical AI-readable profile stack — works on any hosting, no sysadmin needed.",
+  "author": {
+    "name": "AuthorityPrompt",
+    "email": "hello@authorityprompt.com",
+    "url": "https://authorityprompt.com"
+  },
+  "homepage": "https://github.com/authorityprompt/authorityprompt-installer",
+  "repository": "https://github.com/authorityprompt/authorityprompt-installer",
+  "license": "MIT",
+  "keywords": [
+    "authorityprompt",
+    "ai-seo",
+    "llm-visibility",
+    "aeo",
+    "well-known",
+    "ai-profile",
+    "schema.org",
+    "marketplace"
+  ]
+}

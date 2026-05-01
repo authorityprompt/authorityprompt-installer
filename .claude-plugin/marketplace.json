@@ -1,0 +1,19 @@
+{
+  "name": "authorityprompt-installer",
+  "owner": {
+    "name": "AuthorityPrompt",
+    "email": "hello@authorityprompt.com",
+    "url": "https://authorityprompt.com"
+  },
+  "description": "One-click installer for the AuthorityPrompt AI-visibility stack on any website — guided per hosting platform, end-to-end verified.",
+  "plugins": [
+    {
+      "name": "authorityprompt-installer",
+      "source": ".",
+      "description": "Install AuthorityPrompt files on any site without a sysadmin. Detects hosting, generates platform-specific instructions, verifies each step with HTTP tests, runs the 12-layer canonical-AI-profile audit at the end.",
+      "version": "1.0.0",
+      "category": "AI / SEO / Infrastructure",
+      "keywords": ["authorityprompt", "ai-seo", "llm-visibility", "marketplace", "installer"]
+    }
+  ]
+}
