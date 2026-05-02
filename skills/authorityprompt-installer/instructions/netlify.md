@@ -2,7 +2,11 @@
 
 Same pattern as Vercel — Git-based, full Level-1 supported.
 
-## Step A — `/.well-known/*` files
+> **Recommended pattern**: proxy `/.well-known/authorityprompt.*` to AP's canonical generator instead of shipping static copies. Netlify supports this via `_redirects` or `netlify.toml` `[[redirects]]` with `status = 200` (rewrite-not-redirect). See [proxy-pattern.md](./proxy-pattern.md) for the full config — eliminates stale-files drift.
+
+If you need static files instead, continue below.
+
+## Step A — `/.well-known/*` files (static copies)
 
 1. In the repo, create `<publish-dir>/.well-known/` (commonly `public/`, `dist/`, or whatever's set as Build → Publish directory in Netlify).
 2. Copy all 5 AP files into it.

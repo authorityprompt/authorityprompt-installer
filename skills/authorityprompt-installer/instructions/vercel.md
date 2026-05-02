@@ -2,7 +2,11 @@
 
 Vercel sites are Git-based. Both vectors install via committing files and redeploying. Full Level-1 install is supported.
 
-## Step A — `/.well-known/*` files
+> **Recommended pattern**: instead of copying static files, **proxy `/.well-known/authorityprompt.*` directly to AuthorityPrompt's canonical generator** via Next.js `rewrites`. This eliminates stale-files drift (AP regenerates the profile every ~24h; static copies go stale otherwise) and removes the need for redeploy on every AP refresh. See [proxy-pattern.md](./proxy-pattern.md) for the full Next.js config — it's typically the right call for any Vercel deploy.
+
+If you need static files anyway (e.g. air-gapped audit, regulatory snapshot), continue with Step A below.
+
+## Step A — `/.well-known/*` files (static copies)
 
 1. Open the user's Git repo locally (or in Vercel's online editor).
 2. Inside the project, create directory `public/.well-known/` (Next.js, Astro, SvelteKit, Remix, Nuxt, Vite-based) — adjust path if their framework uses a different static dir.

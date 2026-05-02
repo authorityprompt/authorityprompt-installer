@@ -35,9 +35,15 @@ section() { echo; echo "${B}── $1 ──${X}"; }
 CURL="${CURL:-curl}"
 
 http_meta() {
-  $CURL -skIL --max-time 12 -A "Mozilla/5.0 (compatible; ap-installer/1.0)" \
+  # GET, not HEAD. AuthorityPrompt's canonical generator API returns 404 on
+  # HEAD requests (only implements GET), and any install proxying to AP
+  # inherits that behavior. Real consumers — AI crawlers, AP's own install
+  # detector, browsers fetching the AP script — all use GET, so HEAD-based
+  # audits give false negatives on otherwise-correct installs. Body is
+  # discarded via -o /dev/null; we capture only the metrics through -w.
+  $CURL -skL --max-time 12 -A "Mozilla/5.0 (compatible; ap-installer/1.0)" \
     -w '%{http_code}|%{content_type}|%{time_starttransfer}|%{http_version}\n' \
-    -o /dev/null "$1" 2>/dev/null | tail -1
+    -o /dev/null "$1" 2>/dev/null
 }
 http_body() {
   $CURL -skL --max-time 12 -A "Mozilla/5.0 (compatible; ap-installer/1.0)" "$1" 2>/dev/null
@@ -46,24 +52,40 @@ http_body() {
 # ─── Phase: site files (.well-known/*) ───────────────────────────────────
 check_files() {
   section "L1 — Site .well-known files (5 endpoints, correct Content-Type)"
+  # Each entry: path|primary-MIME|alt-MIME-tokens (pipe-separated regex tokens
+  # to also accept). YAML especially has two valid IANA registrations
+  # (RFC 9512 `application/yaml` is canonical; `text/yaml` was used widely
+  # before the RFC and is still served by many hosts and proxies). Markdown
+  # similarly has both `text/markdown` and `text/x-markdown`. Accept all
+  # commonly-seen variants — Content-Type strictness shouldn't fail an
+  # otherwise-correct install.
   declare -a EXPECT=(
-    "/.well-known/authorityprompt.jsonld|application/ld+json"
-    "/.well-known/authorityprompt.yaml|application/yaml"
-    "/.well-known/authorityprompt.md|text/markdown"
+    "/.well-known/authorityprompt.jsonld|application/ld+json|application/json"
+    "/.well-known/authorityprompt.yaml|application/yaml|text/yaml|application/x-yaml|text/x-yaml"
+    "/.well-known/authorityprompt.md|text/markdown|text/x-markdown"
     "/.well-known/authorityprompt.txt|text/plain"
     "/.well-known/authorityprompt.html|text/html"
   )
   local layer_ok=true
   for entry in "${EXPECT[@]}"; do
-    local path="${entry%%|*}" expect="${entry#*|}"
+    local path="${entry%%|*}"
+    local accept="${entry#*|}"   # pipe-separated list of acceptable MIME prefixes
     local meta code ctype
     meta=$(http_meta "${URL}${path}")
     code="${meta%%|*}"
     ctype="${meta#*|}"; ctype="${ctype%%|*}"
-    if [[ "$code" == "200" && "$ctype" == *"$expect"* ]]; then
+
+    local matched=false
+    local IFS='|'
+    for mime in $accept; do
+      [[ "$ctype" == *"$mime"* ]] && { matched=true; break; }
+    done
+    unset IFS
+
+    if [[ "$code" == "200" && "$matched" == true ]]; then
       ok "$path → 200 + $ctype"
     else
-      ng "$path → ${code:-FAIL} + ${ctype:-?} (need 200 + $expect)"
+      ng "$path → ${code:-FAIL} + ${ctype:-?} (need 200 + one of: $accept)"
       layer_ok=false
     fi
   done
@@ -210,7 +232,8 @@ except Exception as e:
     local bot code
     # Case-insensitive — Googlebot has lowercase `b`.
     bot=$(echo "$ua" | grep -oiE '[A-Za-z-]+bot[/0-9.]*' | head -1)
-    code=$($CURL -skILo /dev/null -w '%{http_code}' --max-time 8 -A "$ua" "${AP}/manifest.json")
+    # GET (not HEAD) — same reason as http_meta. AP's API returns 404 on HEAD.
+    code=$($CURL -skLo /dev/null -w '%{http_code}' --max-time 8 -A "$ua" "${AP}/manifest.json")
     if [[ "$code" == "200" ]]; then
       ok "$bot → 200"
     else

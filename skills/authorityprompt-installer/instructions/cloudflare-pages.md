@@ -2,7 +2,11 @@
 
 Git-based, full Level-1 supported.
 
-## Step A — `/.well-known/*` files
+> **Recommended pattern**: proxy `/.well-known/authorityprompt.*` to AP's canonical generator via Cloudflare Pages Functions or a Worker bound to your zone. Static copies go stale within 24h as AP regenerates; the proxy stays live forever. See [proxy-pattern.md](./proxy-pattern.md) and [cloudflare-worker.md](./cloudflare-worker.md).
+
+If you need static files instead, continue below.
+
+## Step A — `/.well-known/*` files (static copies)
 
 1. In the user's repo, create `<publish-dir>/.well-known/` (commonly `public/`, `dist/`, `out/`, depending on framework).
 2. Copy the 5 AP files in.

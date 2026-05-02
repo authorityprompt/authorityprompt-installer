@@ -2,7 +2,11 @@
 
 You have SSH/root access. This is the simplest install.
 
-## Step A — `/.well-known/*` files
+> **Recommended pattern**: instead of file uploads, configure nginx to **proxy** `/.well-known/authorityprompt.*` to AP's canonical generator. One regex `location` block, no rsync, no cron — files are always live. See [proxy-pattern.md](./proxy-pattern.md) for the full nginx config.
+
+If you have a strong reason to host static copies (air-gapped audit, regulatory archive), continue below.
+
+## Step A — `/.well-known/*` files (static copies)
 
 ```bash
 # from your local machine, push the 5 AP files:
