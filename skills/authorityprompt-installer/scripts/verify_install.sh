@@ -30,6 +30,11 @@ LAYERS_FAILED=()
 ok()   { echo "  ${G}✓${X} $1"; PASS=$((PASS+1)); }
 ng()   { echo "  ${R}✗${X} $1"; FAIL=$((FAIL+1)); }
 warn() { echo "  ${Y}!${X} $1"; }
+# skip — informational, does NOT increment FAIL. Used for layers that are
+# valid only under certain conditions (e.g. signature verification when
+# AP hasn't signed the profile yet, or the canary ingestion test when no
+# OPENAI_API_KEY is provided).
+skip() { echo "  ${Y}~${X} $1 skipped: $2"; }
 section() { echo; echo "${B}── $1 ──${X}"; }
 
 CURL="${CURL:-curl}"

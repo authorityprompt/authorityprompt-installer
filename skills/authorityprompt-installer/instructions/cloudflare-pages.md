@@ -9,7 +9,8 @@ If you need static files instead, continue below.
 ## Step A — `/.well-known/*` files (static copies)
 
 1. In the user's repo, create `<publish-dir>/.well-known/` (commonly `public/`, `dist/`, `out/`, depending on framework).
-2. Copy the 5 AP files in.
+2. Copy the 5 profile files (`authorityprompt.{jsonld,yaml,md,txt,html}`) in.
+3. **Also required** — create `<publish-dir>/js/` and copy `authorityprompt.js` to `<publish-dir>/js/authorityprompt.js`. AP's detector probes this Option-2 path independently and reports `js:NOT_FOUND` if absent.
 
 ### Content-Type fix via `_headers`
 

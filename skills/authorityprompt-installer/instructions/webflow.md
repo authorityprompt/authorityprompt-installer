@@ -2,7 +2,7 @@
 
 Webflow doesn't natively serve files at custom paths like `/.well-known/*`. The standard install is Level-2 (head tags only) — the canonical AI profile lives on AuthorityPrompt, and the backlink takes care of discovery.
 
-If the user really needs Level-1 (5 files served from their domain), the only path is to put the site behind a Cloudflare Worker — see `cloudflare-worker.md`. Otherwise this is the install:
+If the user really needs Level-1 (5 profile files + `/js/authorityprompt.js` served from their domain), the only path is to put the site behind a Cloudflare Worker — see `cloudflare-worker.md`. Otherwise this is the install:
 
 ## Step A — add the 3 head tags (Site-wide)
 

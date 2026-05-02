@@ -26,20 +26,38 @@ If empty, Cloudflare is not in front — skip this guide.
 export default {
   async fetch(request) {
     const url = new URL(request.url);
-    const m = url.pathname.match(/^\/\.well-known\/authorityprompt\.(jsonld|yaml|md|txt|html)$/);
 
+    // Case 1 — /.well-known/authorityprompt.{jsonld|yaml|md|txt|html}
+    const m = url.pathname.match(/^\/\.well-known\/authorityprompt\.(jsonld|yaml|md|txt|html)$/);
     if (m) {
       const ext = m[1];
-      const remote = `https://authorityprompt.com/company/${url.hostname}/authorityprompt.${ext}`;
+      const remote = `https://authorityprompt.com/api/ingest-generator/company/${url.hostname}/authorityprompt.${ext}`;
       const upstream = await fetch(remote, {
         headers: { 'User-Agent': 'authorityprompt-proxy/1.0' },
       });
-      // Pass through with original status + Content-Type, strip cookies.
       return new Response(upstream.body, {
         status: upstream.status,
         headers: {
           'Content-Type': upstream.headers.get('Content-Type') ?? 'application/octet-stream',
           'Cache-Control': 'public, max-age=3600, must-revalidate',
+          'Access-Control-Allow-Origin': '*',
+        },
+      });
+    }
+
+    // Case 2 — /js/authorityprompt.js (Option-2 install path that AP's
+    // detector probes independently of the script tag in <head>).
+    if (url.pathname === '/js/authorityprompt.js') {
+      const remote = `https://authorityprompt.com/api/ingest-generator/company/${url.hostname}/authorityprompt.js`;
+      const upstream = await fetch(remote, {
+        headers: { 'User-Agent': 'authorityprompt-proxy/1.0' },
+      });
+      return new Response(upstream.body, {
+        status: upstream.status,
+        headers: {
+          'Content-Type': upstream.headers.get('Content-Type') ?? 'application/javascript; charset=utf-8',
+          'Cache-Control': 'public, max-age=3600, must-revalidate',
+          'Access-Control-Allow-Origin': '*',
         },
       });
     }
@@ -55,13 +73,15 @@ export default {
 ## Step C — bind the Worker to the site
 
 1. Worker → **Settings** → **Triggers** → **Add route**.
-2. Route: `*<domain>/.well-known/authorityprompt.*` (replace `<domain>` with the user's hostname; the leading `*` is wildcard for subdomains).
+2. **Add two routes** (both required):
+   - `*<domain>/.well-known/authorityprompt.*` — covers the 5 profile files
+   - `*<domain>/js/authorityprompt.js` — covers AP's Option-2 detector path
 3. Zone: select the user's domain.
-4. **Add route**.
+4. **Add route** (twice).
 
 ## Step D — head tags
 
-The Worker handles only `/.well-known/*`. Head tags still need to go via the user's CMS — see the platform-specific instruction file (e.g. `wix.md`, `squarespace.md`).
+The Worker handles only `/.well-known/*` and `/js/authorityprompt.js`. Head tags still need to go via the user's CMS — see the platform-specific instruction file (e.g. `wix.md`, `squarespace.md`).
 
 ## Step E — verify
 
@@ -69,7 +89,7 @@ The Worker handles only `/.well-known/*`. Head tags still need to go via the use
 bash scripts/verify_install.sh <domain> <token>
 ```
 
-Expect L1 PASS (Worker proxy serves the 5 files with correct Content-Type from AuthorityPrompt directly), L2-L9 PASS.
+Expect L1 PASS — Worker proxy serves all **6 endpoints** with correct Content-Type (5 in `/.well-known/` + `/js/authorityprompt.js`). L2-L14 PASS.
 
 ## Cost
 

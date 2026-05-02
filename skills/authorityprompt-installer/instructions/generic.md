@@ -8,7 +8,7 @@ Ask the user:
 
 ### Q1 — Do you have file upload access? (FTP / SFTP / SSH / cPanel File Manager / Git push)
 
-- **Yes** → you can do Level-1 install (5 files in /.well-known/). Proceed to Q2.
+- **Yes** → you can do Level-1 install (5 files in /.well-known/ + authorityprompt.js in /js/). Proceed to Q2.
 - **No** → Level-2 install only (head tags). Skip to Q3.
 
 ### Q2 — Where is the web root?

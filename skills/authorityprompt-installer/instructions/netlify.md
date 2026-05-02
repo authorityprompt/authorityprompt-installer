@@ -9,7 +9,8 @@ If you need static files instead, continue below.
 ## Step A — `/.well-known/*` files (static copies)
 
 1. In the repo, create `<publish-dir>/.well-known/` (commonly `public/`, `dist/`, or whatever's set as Build → Publish directory in Netlify).
-2. Copy all 5 AP files into it.
+2. Copy all 5 profile files (`authorityprompt.{jsonld,yaml,md,txt,html}`) into it.
+3. **Also required** — copy `authorityprompt.js` from the bundle to `<publish-dir>/js/authorityprompt.js` (create the `/js/` subdirectory if it doesn't exist). AuthorityPrompt's installation detector independently probes this Option-2 path and reports `js:NOT_FOUND` if absent.
 
 ### Content-Type fix via `_headers` file
 

@@ -31,7 +31,7 @@ Before doing anything else, gather these. Ask in plain language, one item at a t
 | `AP_FILES_DIR` | Local path to the `authorityprompt-<domain>` folder they downloaded from authorityprompt.com | `~/Downloads/authorityprompt-example/` |
 | `VERIFICATION_TOKEN` | Token shown in their AP dashboard or printed in the downloaded README | `274771` |
 
-Confirm the bundle is intact: the directory must contain `authorityprompt.jsonld`, `authorityprompt.yaml`, `authorityprompt.md`, `authorityprompt.txt`, `authorityprompt.html`, plus optionally `authorityprompt.js` and `README.md`. If anything is missing, stop and tell the user to re-download from `https://authorityprompt.com/dashboard`.
+Confirm the bundle is intact: the directory must contain `authorityprompt.jsonld`, `authorityprompt.yaml`, `authorityprompt.md`, `authorityprompt.txt`, `authorityprompt.html`, and `authorityprompt.js` (all six required — the `.js` is needed because AP's installation detector probes `/js/authorityprompt.js` even when the user follows Option 1 with a remote `<script src=…authorityprompt.com…>` in `<head>`). The `README.md` is informational. If any of the six files is missing, stop and tell the user to re-download from `https://authorityprompt.com/dashboard`.
 
 ## Phase 1 — Detect hosting platform
 

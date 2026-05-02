@@ -11,7 +11,7 @@ After registering your domain in your AuthorityPrompt dashboard and downloading 
 3. **Verify each step** with `curl` against your live site as you complete it.
 4. **Run the full audit** at the end and tell you whether your AI-readable profile is production-grade.
 
-Output: every page on your site has the AP head tags, your `/.well-known/` endpoints serve the 5 AP files with correct Content-Type, and your AP dashboard starts receiving heartbeat pings from AI bot visits.
+Output: every page on your site has the AP head tags, your `/.well-known/` directory serves the 5 profile files with correct Content-Type, your domain serves `/js/authorityprompt.js` (required by AP's installation detector even on Option 1 installs), and your AP dashboard starts receiving heartbeat pings from AI bot visits.
 
 ## Install (Claude Code)
 
@@ -35,7 +35,7 @@ If you don't have a domain registered yet, do that first at [authorityprompt.com
 
 ## Supported platforms
 
-| Platform | Level-1 (5 files served) | Level-2 (head tags only) |
+| Platform | Level-1 (6 endpoints served) | Level-2 (head tags only) |
 |---|---|---|
 | Custom VPS (nginx, Apache) | ✅ | ✅ |
 | WordPress (self-hosted) | ✅ | ✅ |
@@ -57,8 +57,8 @@ If you don't have a domain registered yet, do that first at [authorityprompt.com
 | Bitrix (self-hosted) | ✅ | ✅ |
 | Bitrix24 (cloud) | ❌ | ❌ |
 
-**Level-1** = full 12-layer audit pass: `/.well-known/` files served from your domain + head tags.
-**Level-2** = head tags only; AI crawlers discover your canonical profile via the `<link rel="ai-profile">` backlink to AuthorityPrompt's hosted version. Still 100% functional, just one less duplicate copy.
+**Level-1** = full 14-layer audit pass: 5 profile files at `/.well-known/authorityprompt.{jsonld,yaml,md,txt,html}` + `/js/authorityprompt.js` + head tags. All six endpoints required for AP-side validation to mark the install green.
+**Level-2** = head tags only; AI crawlers discover your canonical profile via the `<link rel="ai-profile">` backlink to AuthorityPrompt's hosted version. Still functional for crawlers, but AP's dashboard will report file-detection failures.
 
 ## Manual verification (without the skill)
 

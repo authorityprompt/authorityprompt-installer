@@ -33,20 +33,28 @@ REQUIRED=(
   "authorityprompt.txt"
   "authorityprompt.html"
 )
+# authorityprompt.js is also required — AuthorityPrompt's installation
+# detector probes /js/authorityprompt.js even when sites use Option 1
+# (remote <script src=…authorityprompt.com…>) and reports js:NOT_FOUND
+# when absent. We deploy the bundled copy to /js/ on the user's server
+# so the install passes detection.
+REQUIRED_JS="authorityprompt.js"
 
 echo "▸ Validating local files at $LOCAL_DIR"
-for f in "${REQUIRED[@]}"; do
+for f in "${REQUIRED[@]}" "$REQUIRED_JS"; do
   if [[ ! -f "${LOCAL_DIR}/${f}" ]]; then
     echo "✗ Missing: ${LOCAL_DIR}/${f}"
     echo "  Re-download the AuthorityPrompt bundle from your dashboard."
     exit 1
   fi
 done
-echo "  ✓ all 5 files present"
+echo "  ✓ all 6 files present (5 profile formats + authorityprompt.js)"
 
 echo
 echo "▸ Connecting to $REMOTE"
-echo "  remote target: ${REMOTE_DIR}/.well-known/"
+echo "  remote targets:"
+echo "    ${REMOTE_DIR}/.well-known/  (5 profile files)"
+echo "    ${REMOTE_DIR}/js/           (authorityprompt.js)"
 echo "  Confirm by typing the word 'deploy' below; anything else aborts."
 read -r CONFIRM
 [[ "$CONFIRM" == "deploy" ]] || { echo "✗ aborted"; exit 1; }
@@ -59,6 +67,12 @@ for f in "${REQUIRED[@]}"; do
   scp -q "${LOCAL_DIR}/${f}" "${REMOTE}:${REMOTE_DIR}/.well-known/${f}"
   ssh "$REMOTE" "chmod 644 ${REMOTE_DIR}/.well-known/${f}"
 done
+
+echo "▸ Creating remote /js/ directory and uploading authorityprompt.js"
+ssh "$REMOTE" "mkdir -p ${REMOTE_DIR}/js && chmod 755 ${REMOTE_DIR}/js"
+echo "  ↑ ${REQUIRED_JS} -> /js/${REQUIRED_JS}"
+scp -q "${LOCAL_DIR}/${REQUIRED_JS}" "${REMOTE}:${REMOTE_DIR}/js/${REQUIRED_JS}"
+ssh "$REMOTE" "chmod 644 ${REMOTE_DIR}/js/${REQUIRED_JS}"
 
 # Apache fix — Apache misidentifies .jsonld/.yaml/.md content types by default.
 # Write a small .htaccess in .well-known/ to set them correctly. nginx/Caddy

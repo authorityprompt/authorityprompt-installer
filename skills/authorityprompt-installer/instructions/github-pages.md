@@ -2,11 +2,12 @@
 
 Git-based, full Level-1 supported (with one Jekyll quirk).
 
-## Step A — `/.well-known/*` files
+## Step A — `/.well-known/*` + `/js/` files
 
 1. Clone the repo locally.
 2. Create `.well-known/` at repo root (or inside `docs/` if Pages is set to "docs/" folder).
-3. Copy the 5 AP files in.
+3. Copy the 5 profile files (`authorityprompt.{jsonld,yaml,md,txt,html}`) in.
+4. **Also required** — create `js/` at the same level (repo root or `docs/`) and copy `authorityprompt.js` to `js/authorityprompt.js`. AP's installation detector probes `<your-domain>/js/authorityprompt.js` independently of how the script tag is loaded in `<head>`.
 
 ## Jekyll quirk — directories starting with `.`
 

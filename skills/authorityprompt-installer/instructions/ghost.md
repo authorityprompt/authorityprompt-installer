@@ -21,11 +21,13 @@ Not possible. Stay on Level-2 install.
 The Ghost Node app does NOT serve files from a public directory by default. You need an upstream nginx (or Caddy) in front. Use the SSH script:
 
 ```bash
-# Find your Ghost installation's content/files location, then upload via SSH:
+# Find your Ghost installation's content/files location, then upload via SSH.
+# ssh_deploy.sh uploads both /.well-known/authorityprompt.* and
+# /js/authorityprompt.js — both are required for full AP-side validation.
 bash scripts/ssh_deploy.sh <user@host> /var/www/ghost/content/public ~/Downloads/authorityprompt-<domain>/
 ```
 
-Add to your nginx config:
+Add to your nginx config (covers both the 5 profile files and `/js/authorityprompt.js`):
 
 ```nginx
 location ^~ /.well-known/ {
@@ -39,6 +41,12 @@ location ^~ /.well-known/ {
     }
     autoindex off;
     try_files $uri =404;
+}
+
+# Option-2 detector path — must also be served.
+location = /js/authorityprompt.js {
+    alias /var/www/ghost/content/public/js/authorityprompt.js;
+    add_header Content-Type "application/javascript; charset=utf-8" always;
 }
 ```
 

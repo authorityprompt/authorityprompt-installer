@@ -18,7 +18,10 @@ Or manually:
 ```bash
 ssh root@<vps-ip>
 mkdir -p /var/www/<domain>/public/.well-known
-# (back on local) scp the 5 files into that directory
+# (back on local) scp the 5 profile files into that directory
+mkdir -p /var/www/<domain>/public/js
+# scp authorityprompt.js into /var/www/<domain>/public/js/authorityprompt.js
+# (Option-2 path that AP's detector probes independently)
 ```
 
 ## Step B — Content-Type config in nginx

@@ -7,8 +7,9 @@ Catch-all for Apache-served sites that aren't WordPress or another CMS — bare 
 1. Connect via FTP/SFTP or File Manager (cPanel/DirectAdmin/Plesk).
 2. Navigate to web root — `public_html/`, `www/`, `httpdocs/`, or whatever your control panel labels as document root.
 3. Create `.well-known/` directory (enable "Show hidden files" if you don't see it).
-4. Upload all 5 AP files.
+4. Upload all 5 profile files (`authorityprompt.{jsonld,yaml,md,txt,html}`).
 5. Upload `templates/htaccess.conf` from this skill, renamed to `.htaccess`, into `.well-known/`. This sets the correct Content-Type for `.jsonld` / `.yaml` / `.md`.
+6. **Also required** — create `<web-root>/js/` and upload `authorityprompt.js` to `<web-root>/js/authorityprompt.js`. AP's detector probes this Option-2 path independently of how the script tag is loaded in `<head>`, and reports `js:NOT_FOUND` when missing.
 
 Or use the SSH script if shell access is available:
 

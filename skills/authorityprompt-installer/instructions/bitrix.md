@@ -7,8 +7,9 @@ Bitrix supports both vectors via FTP/SFTP file upload + admin panel HEAD injecti
 1. Connect via FTP/SFTP (admin panel → Settings → Tools → SiteUpdate or external client).
 2. Navigate to web root — typically `/home/bitrix/www/` or your installation's DOCUMENT_ROOT.
 3. Create `.well-known/` directory if missing (server-side `mkdir`, since some FTP clients hide dotdirs).
-4. Upload all 5 files.
+4. Upload all 5 profile files (`authorityprompt.{jsonld,yaml,md,txt,html}`).
 5. Apache shared hosting — also upload `templates/htaccess.conf` renamed to `.htaccess`.
+6. **Also required** — upload `authorityprompt.js` from the bundle to `<web-root>/js/authorityprompt.js` (create the `/js/` directory if missing). AP's installation detector probes this Option-2 path independently and reports `js:NOT_FOUND` if absent.
 
 ## Step B — head tags
 

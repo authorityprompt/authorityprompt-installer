@@ -11,13 +11,14 @@ The 5 `/.well-known/` files go in the web root. The head tags go via a plugin or
 1. Open File Manager (cPanel) or connect via FTP/SFTP.
 2. Navigate to the public web root — usually `public_html/` for cPanel, `/home/<user>/public_html/`, or `/var/www/html/` for self-hosted.
 3. Create a directory `.well-known/` if it doesn't exist (the leading dot is important — some File Managers hide it; enable "Show hidden files").
-4. Upload all 5 files from the user's local `authorityprompt-<domain>/` folder:
+4. Upload all 5 profile files from the user's local `authorityprompt-<domain>/` folder:
    - `authorityprompt.jsonld`
    - `authorityprompt.yaml`
    - `authorityprompt.md`
    - `authorityprompt.txt`
    - `authorityprompt.html`
 5. **Apache only** — also upload `templates/htaccess.conf` from this skill, renamed to `.htaccess`, into the same `.well-known/` directory. This fixes Content-Type for `.jsonld` / `.yaml` / `.md`.
+6. **Also required** — upload `authorityprompt.js` from the same bundle to `<web-root>/js/authorityprompt.js`. AuthorityPrompt's installation detector probes this exact path even when you use Option 1 (remote `<script src="https://authorityprompt.com/...">`) and reports `js:NOT_FOUND` if absent. Create the `/js/` directory if it doesn't exist; permissions `755` on dir, `644` on file.
 
 Verify: `bash scripts/verify_install.sh <domain> <token> --phase files`. All 5 must return 200 + correct Content-Type.
 

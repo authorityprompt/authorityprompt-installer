@@ -10,7 +10,8 @@ If you need static files anyway (e.g. air-gapped audit, regulatory snapshot), co
 
 1. Open the user's Git repo locally (or in Vercel's online editor).
 2. Inside the project, create directory `public/.well-known/` (Next.js, Astro, SvelteKit, Remix, Nuxt, Vite-based) — adjust path if their framework uses a different static dir.
-3. Copy the 5 files from `~/Downloads/authorityprompt-<domain>/` into `public/.well-known/`.
+3. Copy the 5 profile files (`authorityprompt.{jsonld,yaml,md,txt,html}`) from `~/Downloads/authorityprompt-<domain>/` into `public/.well-known/`.
+4. **Also required** — copy `authorityprompt.js` from the same bundle to `public/js/authorityprompt.js` (create the `public/js/` subdirectory if missing). AuthorityPrompt's installation detector probes this Option-2 path independently and reports `js:NOT_FOUND` if absent — even when you use Option 1 (remote `<script src=…authorityprompt.com…>`).
 
 ### Content-Type fix (Vercel-specific)
 
