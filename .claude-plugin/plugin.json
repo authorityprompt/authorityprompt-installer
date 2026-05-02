@@ -1,6 +1,6 @@
 {
   "name": "authorityprompt-installer",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Guided installer for the AuthorityPrompt canonical AI-readable profile stack — works on any hosting, no sysadmin needed.",
   "author": {
     "name": "AuthorityPrompt",

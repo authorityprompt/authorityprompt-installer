@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 # verify_install.sh — full audit of an AuthorityPrompt install on the user's site.
-# Checks 12 layers of compliance, exits 0 only if every required layer passes.
+# Checks 14 layers of compliance (38 distinct checks), exits 0 only if every
+# required layer passes. Closed-CMS Level-2 installs (head tags + AP-side
+# profile pass, local files unavailable by platform) exit 2 with a clear
+# success message rather than a generic failure.
 #
 # Usage:
 #   verify_install.sh <domain> [token]                   # full audit
@@ -381,10 +384,29 @@ echo "  fails:  $FAIL"
 if [[ ${#LAYERS_FAILED[@]} -gt 0 ]]; then
   echo "  failed layers: ${LAYERS_FAILED[*]}"
   echo
+
+  # Level-2 auto-detect — closed CMS (Wix, Squarespace, Carrd, Webflow w/o
+  # Cloudflare, etc.) physically cannot serve files at /.well-known/* or
+  # /js/* on their own domain. For those installs, L1 is expected to fail
+  # while every other layer (head tags + AP-side profile + AI-bot reach)
+  # passes. AI crawlers still discover the canonical profile via the
+  # <link rel="ai-profile"> backlink. This is a valid end state — exit 2
+  # so callers can distinguish from a real failure.
+  if [[ "${#LAYERS_FAILED[@]}" -eq 1 && "${LAYERS_FAILED[0]}" == "L1" && "$PHASE" == "full" ]]; then
+    echo "${Y}${B}~ LEVEL-2 INSTALL VALID${X}"
+    echo "  Head tags + AuthorityPrompt-side profile + AI-bot accessibility all pass."
+    echo "  /.well-known/* and /js/authorityprompt.js are not served — expected on"
+    echo "  closed-CMS hosting (Wix, Squarespace, Carrd, etc.) where custom paths"
+    echo "  cannot be exposed. AI crawlers will follow <link rel=\"ai-profile\"> to"
+    echo "  the canonical profile on AuthorityPrompt directly."
+    echo "  dashboard: https://authorityprompt.com/company/${DOMAIN}"
+    exit 2
+  fi
+
   echo "${R}${B}✗ INSTALL INCOMPLETE${X}"
   exit 1
 fi
 echo
-echo "${G}${B}✓ INSTALL COMPLETE — canonical AI-readable profile is live.${X}"
+echo "${G}${B}✓ INSTALL COMPLETE — canonical AI-readable profile is live (Level-1).${X}"
 echo "  dashboard: https://authorityprompt.com/company/${DOMAIN}"
 exit 0

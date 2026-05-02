@@ -1,6 +1,6 @@
 # AuthorityPrompt Installer — Claude Code Skill
 
-One-click installer for the [AuthorityPrompt](https://authorityprompt.com) AI-visibility stack on **any website**, no sysadmin required. Detects your hosting, walks you through platform-specific install steps, verifies each step with HTTP probes, and runs a 12-layer canonical-AI-profile audit at the end.
+One-click installer for the [AuthorityPrompt](https://authorityprompt.com) AI-visibility stack on **any website**, no sysadmin required. Detects your hosting, walks you through platform-specific install steps, verifies each step with HTTP probes, and runs a 14-layer canonical-AI-profile audit (38 checks) at the end.
 
 ## What this skill does
 

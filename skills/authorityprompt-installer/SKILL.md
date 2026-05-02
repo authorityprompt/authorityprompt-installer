@@ -1,6 +1,6 @@
 ---
 name: authorityprompt-installer
-description: Use this skill when the user wants to install the AuthorityPrompt AI-visibility stack on their website without a sysadmin. Triggers on phrases like "install authorityprompt", "set up AP files", "deploy authorityprompt to my site", "make my site AI-readable", or after the user downloads the AuthorityPrompt ZIP from authorityprompt.com. The skill detects the user's hosting platform via HTTP fingerprinting, walks through platform-specific manual or scripted steps, verifies each step with curl probes, and runs a final 12-layer canonical-AI-profile audit. Pre-conditions you should ask the user for if not provided — (1) the public domain of the site, (2) the local path to the downloaded `authorityprompt-<domain>` folder containing the 5 static files and authorityprompt.js, (3) the verification token (visible in the AP dashboard or in their downloaded README). Skill is non-destructive — read-only audits unless the user explicitly approves a deploy step.
+description: Use this skill when the user wants to install the AuthorityPrompt AI-visibility stack on their website without a sysadmin. Triggers on phrases like "install authorityprompt", "set up AP files", "deploy authorityprompt to my site", "make my site AI-readable", or after the user downloads the AuthorityPrompt ZIP from authorityprompt.com. The skill detects the user's hosting platform via HTTP fingerprinting, walks through platform-specific manual or scripted steps, verifies each step with curl probes, and runs a final 14-layer canonical-AI-profile audit (38 checks, full AP-side parity). Pre-conditions you should ask the user for if not provided — (1) the public domain of the site, (2) the local path to the downloaded `authorityprompt-<domain>` folder containing the 5 static files and authorityprompt.js, (3) the verification token (visible in the AP dashboard or in their downloaded README). Skill is non-destructive — read-only audits unless the user explicitly approves a deploy step.
 allowed-tools: Read Write Edit Bash WebFetch
 ---
 
@@ -87,7 +87,7 @@ Print the result table to the user with per-layer PASS/FAIL. If the script exits
 ## Files inside this skill
 
 - `scripts/detect_hosting.sh` — HTTP-fingerprint detection of the user's hosting platform.
-- `scripts/verify_install.sh` — 12-layer canonical-AI-profile audit (also exposes `--phase {files,head,profile}`).
+- `scripts/verify_install.sh` — 14-layer canonical-AI-profile audit, 38 distinct checks (also exposes `--phase {files,head,profile}`). Auto-detects Level-2 installs (closed CMS) and exits with `Level-2 PASS` instead of a generic FAIL when only L1 fails.
 - `scripts/ssh_deploy.sh` — optional SFTP/SSH file uploader for users with shell access.
 - `instructions/<platform>.md` — per-platform step-by-step. Always load the matching one before guiding.
 - `templates/head-snippet.html` — the three head tags to paste.

@@ -12,11 +12,14 @@
 #   1. Creates `<remote-public-dir>/.well-known/` if missing
 #   2. SCPs the 5 .well-known/* files
 #   3. Sets correct permissions (644 file, 755 dir)
-#   4. Optionally writes a per-platform Content-Type fix (Apache .htaccess)
+#   4. Creates `<remote-public-dir>/js/` and uploads `authorityprompt.js`
+#      to `<remote-public-dir>/js/authorityprompt.js` (AP's Option-2 path
+#      that AuthorityPrompt's installation detector probes independently)
+#   5. Optionally writes a per-platform Content-Type fix (Apache .htaccess)
 #
 # What it does NOT do:
 #   - Edit any HTML files (head tags are the user's responsibility — paste-job)
-#   - Touch any other directory than `.well-known/`
+#   - Touch any directory other than `.well-known/` and `/js/`
 #   - Take any destructive action without confirmation
 
 set -euo pipefail
