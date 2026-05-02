@@ -49,22 +49,30 @@ http_body() {
   $CURL -skL --max-time 12 -A "Mozilla/5.0 (compatible; ap-installer/1.0)" "$1" 2>/dev/null
 }
 
-# ─── Phase: site files (.well-known/*) ───────────────────────────────────
+# ─── Phase: site files (.well-known/* + /js/) ───────────────────────────
 check_files() {
-  section "L1 — Site .well-known files (5 endpoints, correct Content-Type)"
+  section "L1 — Site files (6 endpoints, correct Content-Type)"
   # Each entry: path|primary-MIME|alt-MIME-tokens (pipe-separated regex tokens
-  # to also accept). YAML especially has two valid IANA registrations
-  # (RFC 9512 `application/yaml` is canonical; `text/yaml` was used widely
-  # before the RFC and is still served by many hosts and proxies). Markdown
-  # similarly has both `text/markdown` and `text/x-markdown`. Accept all
+  # to also accept). YAML has two valid IANA registrations (RFC 9512
+  # `application/yaml` is canonical; `text/yaml` was used widely before the
+  # RFC and is still served by many proxies). Markdown similarly has both
+  # `text/markdown` and `text/x-markdown`. JavaScript has both
+  # `application/javascript` and the legacy `text/javascript`. Accept all
   # commonly-seen variants — Content-Type strictness shouldn't fail an
   # otherwise-correct install.
+  #
+  # /js/authorityprompt.js is AP's "Option 2" install path. Even users who
+  # follow Option 1 (remote <script src=…authorityprompt.com…>) need this
+  # path to exist, because AP's installation detector probes it independently
+  # and reports `js:NOT_FOUND` when absent. Easiest fix is to proxy
+  # /js/authorityprompt.js to AP's canonical generator (see proxy-pattern.md).
   declare -a EXPECT=(
     "/.well-known/authorityprompt.jsonld|application/ld+json|application/json"
     "/.well-known/authorityprompt.yaml|application/yaml|text/yaml|application/x-yaml|text/x-yaml"
     "/.well-known/authorityprompt.md|text/markdown|text/x-markdown"
     "/.well-known/authorityprompt.txt|text/plain"
     "/.well-known/authorityprompt.html|text/html"
+    "/js/authorityprompt.js|application/javascript|text/javascript"
   )
   local layer_ok=true
   for entry in "${EXPECT[@]}"; do
@@ -139,7 +147,12 @@ check_head() {
   fi
 }
 
-# ─── Phase: AP-side profile ──────────────────────────────────────────────
+# ─── Phase: AP-side profile + AP-installation parity ────────────────────
+# These layers mirror AP's own installation detector. Passing all of these
+# matches the green checkmarks in the AP dashboard's validation panel:
+# bot_tracker_ready, client_files, format_api_{js,jsonld,md,txt,yaml},
+# manifest_alias, manifest_json, manifest_layers, sitemap_presence,
+# ssr_meta, ssr_page.
 check_profile() {
   section "L5-L9 — AP-side profile for ${DOMAIN}"
   local meta code ctype
@@ -241,6 +254,109 @@ except Exception as e:
     fi
   done
   $layer9_ok || LAYERS_FAILED+=("L9")
+
+  # ─── L10 — manifest layers (AP's `manifest_layers` parity check) ───
+  section "L10 — every advertised manifest layer is reachable"
+  local layers_ok=true
+  local layer_urls
+  layer_urls=$(echo "$manifest" | python3 -c '
+import json,sys
+m=json.load(sys.stdin)
+ls=m.get("layers",{})
+if isinstance(ls, dict):
+    for k,v in ls.items():
+        url=None
+        if isinstance(v, str) and v.startswith("http"): url=v
+        elif isinstance(v, dict): url=v.get("url") or v.get("uri") or v.get("href")
+        if url: print(f"{k}|{url}")
+elif isinstance(ls, list):
+    for item in ls:
+        if isinstance(item, dict):
+            url=item.get("url") or item.get("uri") or item.get("href")
+            name=item.get("name", "?")
+            if url: print(f"{name}|{url}")
+' 2>/dev/null)
+  if [[ -z "$layer_urls" ]]; then
+    ng "manifest.layers missing or empty"
+    LAYERS_FAILED+=("L10"); layers_ok=false
+  else
+    while IFS='|' read -r name url; do
+      [[ -z "$url" ]] && continue
+      local lcode
+      lcode=$($CURL -skLo /dev/null -w '%{http_code}' --max-time 8 "$url")
+      if [[ "$lcode" == "200" ]]; then
+        ok "layer $name → 200"
+      else
+        ng "layer $name → $lcode ($url)"
+        layers_ok=false
+      fi
+    done <<< "$layer_urls"
+    $layers_ok || LAYERS_FAILED+=("L10")
+  fi
+
+  # ─── L11 — format files contain canonical backlink (AP `format_api_*`) ─
+  section "L11 — format files reference subject domain (backlink check)"
+  local backlinks_ok=true
+  for fmt in jsonld yaml md txt html; do
+    local body
+    body=$(http_body "${AP}/authorityprompt.${fmt}")
+    # AP's `format_api_*` checks expect each format file to contain a
+    # backlink to the canonical AP profile + the subject domain. We
+    # verify the subject domain appears (it's the strong signal).
+    if echo "$body" | grep -q "$DOMAIN"; then
+      ok "${fmt} contains '$DOMAIN' backlink"
+    else
+      ng "${fmt} missing '$DOMAIN' backlink"
+      backlinks_ok=false
+    fi
+  done
+  $backlinks_ok || LAYERS_FAILED+=("L11")
+
+  # ─── L12 — sitemap presence (AP `sitemap_presence`) ───
+  section "L12 — subject is listed in AuthorityPrompt sitemap"
+  local sitemap_url="https://authorityprompt.com/sitemap.xml"
+  local sm_body
+  sm_body=$($CURL -sL --max-time 10 "$sitemap_url")
+  if echo "$sm_body" | grep -qE "/company/${DOMAIN}([^A-Za-z0-9.]|$)"; then
+    ok "sitemap contains /company/${DOMAIN}"
+  else
+    ng "sitemap does NOT contain /company/${DOMAIN} — submit your domain to AP"
+    LAYERS_FAILED+=("L12")
+  fi
+
+  # ─── L13 — manifest alias (AP `manifest_alias`) ───
+  section "L13 — canonical profile alias reachable (HTML profile)"
+  local alias_meta alias_code
+  alias_meta=$(http_meta "${AP}")  # /company/{domain} (no trailing /manifest.json)
+  alias_code="${alias_meta%%|*}"
+  if [[ "$alias_code" == "200" ]]; then
+    ok "canonical profile alias → 200 (${AP})"
+  else
+    ng "canonical profile alias → $alias_code"
+    LAYERS_FAILED+=("L13")
+  fi
+
+  # ─── L14 — cryptographic signature (when AP exposes one) ───
+  section "L14 — manifest signature verification"
+  local sig pubkey_url alg
+  sig=$(echo "$manifest" | python3 -c 'import json,sys; print(json.load(sys.stdin).get("signature","") or "")' 2>/dev/null)
+  pubkey_url=$(echo "$manifest" | python3 -c 'import json,sys; print(json.load(sys.stdin).get("pubkey_url","") or "")' 2>/dev/null)
+  alg=$(echo "$manifest" | python3 -c 'import json,sys; print(json.load(sys.stdin).get("signature_alg","") or "")' 2>/dev/null)
+  if [[ -z "$sig" ]]; then
+    skip "L14" "manifest has no signature field — AP not signing yet for this profile"
+  elif [[ -z "$pubkey_url" ]]; then
+    ng "signature present but pubkey_url missing — cannot verify"
+    LAYERS_FAILED+=("L14")
+  else
+    local pcode
+    pcode=$($CURL -skLo /dev/null -w '%{http_code}' --max-time 8 "$pubkey_url")
+    if [[ "$pcode" == "200" ]]; then
+      ok "signature_alg=$alg, pubkey reachable at $pubkey_url"
+    else
+      ng "pubkey_url returns $pcode"
+      LAYERS_FAILED+=("L14")
+    fi
+  fi
 }
 
 # ─── Run ─────────────────────────────────────────────────────────────────

@@ -31,6 +31,11 @@ const config = {
       { source: '/.well-known/authorityprompt.md',     destination: `${AP}.md` },
       { source: '/.well-known/authorityprompt.txt',    destination: `${AP}.txt` },
       { source: '/.well-known/authorityprompt.html',   destination: `${AP}.html` },
+      // Option-2 install path. AP's installation detector probes this URL
+      // independently and reports `js:NOT_FOUND` if absent — even when you
+      // use Option 1 (remote <script src=…authorityprompt.com…>) in <head>.
+      // Proxying it satisfies the detector and keeps the script byte-fresh.
+      { source: '/js/authorityprompt.js',              destination: `${AP}.js` },
     ];
   },
   async headers() {
@@ -45,6 +50,7 @@ const config = {
       { source: '/.well-known/authorityprompt.md',     headers: apFileHeaders },
       { source: '/.well-known/authorityprompt.txt',    headers: apFileHeaders },
       { source: '/.well-known/authorityprompt.html',   headers: apFileHeaders },
+      { source: '/js/authorityprompt.js',              headers: apFileHeaders },
     ];
   },
 };
@@ -69,6 +75,16 @@ location ^~ /.well-known/authorityprompt.jsonld {
 # Repeat for .yaml / .md / .txt / .html — or use a regex location:
 location ~ ^/\.well-known/authorityprompt\.(jsonld|yaml|md|txt|html)$ {
     proxy_pass https://authorityprompt.com/api/ingest-generator/company/YOUR-DOMAIN/authorityprompt.$1;
+    proxy_set_header Host authorityprompt.com;
+    proxy_ssl_server_name on;
+    add_header Access-Control-Allow-Origin "*" always;
+    add_header Cache-Control "public, max-age=3600, must-revalidate" always;
+}
+
+# Option-2 path for AP's installation detector — proxied to the same canonical
+# generator. Even sites on Option 1 (remote <script src=…>) need this present.
+location = /js/authorityprompt.js {
+    proxy_pass https://authorityprompt.com/api/ingest-generator/company/YOUR-DOMAIN/authorityprompt.js;
     proxy_set_header Host authorityprompt.com;
     proxy_ssl_server_name on;
     add_header Access-Control-Allow-Origin "*" always;

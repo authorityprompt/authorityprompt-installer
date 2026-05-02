@@ -12,11 +12,14 @@ You are guiding a non-technical website owner to install the **AuthorityPrompt**
 
 After this skill runs to completion, every one of the following must be true on the user's site:
 
-1. Five static files served at `https://{domain}/.well-known/authorityprompt.{jsonld,yaml,md,txt,html}` with correct `Content-Type` headers.
-2. One script tag in `<head>` of every page: `<script src="https://authorityprompt.com/api/ingest-generator/company/{domain}/authorityprompt.js" async></script>`
+1. **Six** files served on the user's domain with correct `Content-Type`:
+   - `https://{domain}/.well-known/authorityprompt.{jsonld,yaml,md,txt,html}` (5 files)
+   - `https://{domain}/js/authorityprompt.js` (AP's "Option 2" path — even if you use Option 1 in `<head>`, AP's installation detector independently probes this path and reports `js:NOT_FOUND` if absent. Easy fix: proxy via the same pattern as `/.well-known/*`)
+2. One script tag in `<head>` of every page (Option 1 — recommended):
+   `<script src="https://authorityprompt.com/api/ingest-generator/company/{domain}/authorityprompt.js" async></script>`
 3. One verification meta tag in `<head>`: `<meta name="authorityprompt-verification" content="{token}">`
 4. One backlink in `<head>`: `<link rel="ai-profile" href="https://authorityprompt.com/company/{domain}">`
-5. The 12-layer audit script in `scripts/verify_install.sh` exits with `EXIT_SUCCESS` (≥ 9 layers PASS, no FAIL on L1, L3, L4, L6).
+5. The audit script in `scripts/verify_install.sh` exits with `EXIT_SUCCESS`. The full audit covers 14 layers including AP-side parity (mirrors AP's own validation: `bot_tracker_ready`, `client_files`, `format_api_*`, `manifest_alias`, `manifest_json`, `manifest_layers`, `sitemap_presence`, `ssr_meta`, `ssr_page`).
 
 ## Required inputs — ask the user up front
 

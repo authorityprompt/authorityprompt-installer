@@ -3,6 +3,12 @@
   Replace the two placeholders before pasting:
     {{DOMAIN}} — your bare hostname, e.g. example.com (no protocol, no path)
     {{TOKEN}}  — verification token from your AuthorityPrompt dashboard
+
+  Important: in addition to these <head> tags, AP's installation detector
+  also probes /js/authorityprompt.js on your domain even when you use
+  Option 1 (remote script tag below). To avoid `js:NOT_FOUND` in the AP
+  dashboard, proxy /js/authorityprompt.js to the canonical AP URL — see
+  instructions/proxy-pattern.md.
 -->
 
 <!-- 1. Domain ownership proof (so AuthorityPrompt can independently verify you own this site) -->
@@ -11,5 +17,7 @@
 <!-- 2. Backlink to canonical AI-readable profile (so AI crawlers can discover the canonical source) -->
 <link rel="ai-profile" href="https://authorityprompt.com/company/{{DOMAIN}}">
 
-<!-- 3. AP sync script — sends bot-visit pings to your dashboard, injects canonical JSON-LD -->
+<!-- 3. AP sync script — sends bot-visit pings to your dashboard, injects canonical JSON-LD.
+       Option 1 (recommended): remote, always up-to-date.
+       Option 2 alternative: <script src="/js/authorityprompt.js" async></script> with /js/ proxied to AP. -->
 <script src="https://authorityprompt.com/api/ingest-generator/company/{{DOMAIN}}/authorityprompt.js" async></script>
